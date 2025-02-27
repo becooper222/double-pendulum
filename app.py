@@ -23,6 +23,7 @@ initialized = False  # Track if we're already initialized
 last_theta1 = None   # Track last used theta1 value
 last_theta2 = None   # Track last used theta2 value
 last_sim_length = None  # Track last used simulation length
+last_timestamp = None  # Track the last animation frame timestamp
 
 def log_message(message):
     """Print debug message to console"""
@@ -83,7 +84,7 @@ def hex_to_rgba(hex_color, alpha=1.0):
 
 def init_simulation():
     """Initialize the simulation with user input values."""
-    global pendulum, running, max_time, last_theta1, last_theta2, last_sim_length, keep_full_trail
+    global pendulum, running, max_time, last_theta1, last_theta2, last_sim_length, keep_full_trail, show_trail
     
     try:
         log_message("Initializing simulation...")
@@ -126,18 +127,24 @@ def init_simulation():
         
         # Set up initial trail visibility
         full_trail_container = js.document.getElementById("full-trail-container")
-        if full_trail_container and show_trail:
+        if full_trail_container:
             full_trail_container.style.display = "flex"
             
-        # Automatically check the "Keep Full Trail History" checkbox
+        # Set "Show Trail" checkbox to checked by default
+        trail_checkbox = js.document.getElementById("show-trail")
+        if trail_checkbox:
+            trail_checkbox.checked = True
+            show_trail = True
+        
+        # Set "Keep Full Trail History" checkbox to unchecked by default
         full_trail_checkbox = js.document.getElementById("keep-full-trail")
         if full_trail_checkbox:
-            full_trail_checkbox.checked = True
-            keep_full_trail = True
-            # Update the pendulum's trail history
+            full_trail_checkbox.checked = False
+            keep_full_trail = False
+            # Update the pendulum's trail history to use the default limited history
             if pendulum is not None:
-                log_message("Enabling unlimited trail history by default")
-                pendulum.set_max_history_length(None)  # Unlimited
+                log_message("Using limited trail history by default (1000 points)")
+                pendulum.set_max_history_length(1000)  # Default limit
         
         log_message("Simulation initialized successfully")
         return True
@@ -147,7 +154,7 @@ def init_simulation():
 
 def toggle_simulation(event=None):
     """Toggle the simulation between running and paused states."""
-    global running, animation_id
+    global running, animation_id, last_timestamp
     
     try:
         log_message("Toggle simulation called")
@@ -183,8 +190,8 @@ def toggle_simulation(event=None):
                 # Restart the simulation with new values
                 restart_simulation()
                 
-                # Add debug message about values changing
-                js.document.getElementById("debug-output").innerHTML += '<p style="color: blue;">Values changed - Simulation restarted automatically</p>'
+                # Use console log instead of updating debug output
+                log_message("Values changed - Simulation restarted automatically")
         
         # If simulation is not initialized, initialize it
         if pendulum is None:
@@ -205,6 +212,7 @@ def toggle_simulation(event=None):
         if running:
             log_message("Starting animation")
             play_button.textContent = "Pause"
+            last_timestamp = None  # Reset the timestamp when starting
             animation_id = js.window.requestAnimationFrame(create_proxy(animation_loop))
         else:
             log_message("Pausing animation")
@@ -212,12 +220,13 @@ def toggle_simulation(event=None):
             if animation_id is not None:
                 js.window.cancelAnimationFrame(animation_id)
                 animation_id = None
+                last_timestamp = None  # Reset timestamp on pause
     except Exception as e:
         log_message(f"ERROR toggling simulation: {str(e)}")
 
 def restart_simulation(event=None):
     """Restart the simulation with new parameters."""
-    global running, animation_id, pendulum, keep_full_trail
+    global running, animation_id, pendulum, keep_full_trail, last_timestamp
     
     try:
         log_message("Restarting simulation")
@@ -225,6 +234,7 @@ def restart_simulation(event=None):
         if animation_id is not None:
             js.window.cancelAnimationFrame(animation_id)
             animation_id = None
+            last_timestamp = None  # Reset timestamp on restart
         
         # Initialize simulation with new parameters
         init_simulation()
@@ -241,16 +251,6 @@ def restart_simulation(event=None):
         if restart_notice:
             restart_notice.style.display = "none"
             restart_notice.classList.remove("flash")
-        
-        # Ensure "Keep Full Trail History" remains checked
-        full_trail_checkbox = js.document.getElementById("keep-full-trail")
-        if full_trail_checkbox:
-            full_trail_checkbox.checked = True
-            keep_full_trail = True
-            # Update the pendulum's trail history
-            if pendulum is not None:
-                log_message("Ensuring unlimited trail history on restart")
-                pendulum.set_max_history_length(None)  # Unlimited
         
         # Draw initial state
         draw()
@@ -406,21 +406,52 @@ def draw():
 
 def animation_loop(timestamp):
     """Main animation loop."""
-    global animation_id, running
+    global animation_id, running, last_timestamp
     
     try:
         if pendulum is None or not running:
             return
+        
+        # Initialize last_timestamp if this is the first frame
+        if last_timestamp is None:
+            last_timestamp = timestamp
+            animation_id = js.window.requestAnimationFrame(create_proxy(animation_loop))
+            return
+        
+        # Calculate the elapsed time in seconds since the last frame
+        elapsed = (timestamp - last_timestamp) / 1000.0  # Convert to seconds
+        last_timestamp = timestamp
+        
+        # Ensure we don't take too large steps (can happen if tab was in background)
+        if elapsed > 0.1:  # Cap maximum step size to 100ms
+            elapsed = 0.1
         
         # Check if simulation time has exceeded max time
         if pendulum.get_time() >= max_time:
             running = False
             play_button = js.document.getElementById("play-button")
             play_button.textContent = "Play/Pause"
+            last_timestamp = None  # Reset timestamp
             return
         
+        # Calculate how many physics steps to take
+        steps_to_take = max(1, round(elapsed / pendulum.dt))
+        
+        # Calculate adjusted dt to match real elapsed time
+        adjusted_dt = elapsed / steps_to_take
+        
+        # Temporarily store the original dt
+        original_dt = pendulum.dt
+        
+        # Set the adjusted dt for more accurate time progression
+        pendulum.dt = adjusted_dt
+        
         # Update simulation state
-        pendulum.step()
+        for _ in range(steps_to_take):
+            pendulum.step()
+        
+        # Restore the original dt
+        pendulum.dt = original_dt
         
         # Update UI
         update_time_display()
@@ -449,13 +480,8 @@ def init():
         # Set up canvas
         if not setup_canvas():
             log_message("Failed to set up canvas")
-            js.document.getElementById("debug-output").innerHTML += '<p class="error">Failed to set up canvas. Check console for errors.</p>'
+            # Debug div has been removed, so don't try to write to it
             return
-        
-        # Update the debug panel
-        debug_div = js.document.getElementById("debug-output")
-        if debug_div:
-            debug_div.innerHTML += '<p style="color: green;">Canvas initialized successfully! Red test rectangle should be visible.</p>'
         
         # Attach event handlers
         log_message("Attaching event handlers...")
@@ -469,17 +495,14 @@ def init():
             
             if play_button is None:
                 log_message("ERROR: Play button not found!")
-                js.document.getElementById("debug-output").innerHTML += '<p class="error">Play button not found. Check HTML structure.</p>'
                 return
                 
             if restart_button is None:
                 log_message("ERROR: Restart button not found!")
-                js.document.getElementById("debug-output").innerHTML += '<p class="error">Restart button not found. Check HTML structure.</p>'
                 return
                 
             if trail_checkbox is None:
                 log_message("ERROR: Trail checkbox not found!")
-                js.document.getElementById("debug-output").innerHTML += '<p class="error">Trail checkbox not found. Check HTML structure.</p>'
                 return
             
             # Create proxied event handlers
@@ -503,8 +526,10 @@ def init():
             if theta1_input and theta2_input and sim_length_input:
                 # Create a function to notify user to restart
                 def notify_restart(event=None):
-                    js.document.getElementById("restart-notice").style.display = "block"
-                    js.setTimeout(lambda: js.document.getElementById("restart-notice").classList.add("flash"), 100)
+                    restart_notice = js.document.getElementById("restart-notice")
+                    if restart_notice:
+                        restart_notice.style.display = "block"
+                        js.setTimeout(lambda: restart_notice.classList.add("flash"), 100)
                 
                 # Add event listeners
                 theta1_input.addEventListener("change", create_proxy(notify_restart))
@@ -530,27 +555,13 @@ def init():
             js.window.toggleTrail = trail_proxy
             js.window.toggleFullTrail = full_trail_proxy
             
-            # Add debug buttons to debug panel
-            debug_buttons_html = '<div class="debug-buttons">' + \
-                '<button onclick="window.toggleSimulation()" class="button primary">Debug: Toggle Simulation</button> ' + \
-                '<button onclick="window.restartSimulation()" class="button secondary">Debug: Restart</button>' + \
-                '<button onclick="window.toggleTrail()" class="button secondary">Debug: Toggle Trail</button>' + \
-                '<button onclick="window.toggleFullTrail()" class="button secondary">Debug: Toggle Full Trail</button>' + \
-                '</div>'
-            debug_div.innerHTML += debug_buttons_html
-            
         except Exception as e:
             log_message(f"ERROR attaching event handlers: {str(e)}")
-            js.document.getElementById("debug-output").innerHTML += f'<p class="error">Error attaching event handlers: {str(e)}</p>'
             return
         
         # Initialize simulation
         log_message("Setting up initial simulation...")
         init_simulation()
-        
-        # Update PyScript status
-        js.document.getElementById("pyscript-status").textContent = "Loaded and Ready"
-        js.document.getElementById("pyscript-status").style.color = "green"
         
         # Auto-start the simulation to demonstrate it works
         js.setTimeout(create_proxy(lambda: toggle_simulation()), 1000)
@@ -561,7 +572,17 @@ def init():
         log_message("Initialization complete!")
     except Exception as e:
         log_message(f"ERROR during initialization: {str(e)}")
-        js.document.getElementById("debug-output").innerHTML += f'<p class="error">Error during initialization: {str(e)}</p>'
+
+# Function to safely update debug element if it exists
+def update_debug_element(message, is_error=False):
+    """Safely update debug element if it exists"""
+    try:
+        debug_div = js.document.getElementById("debug-output")
+        if debug_div:
+            style = 'class="error"' if is_error else 'style="color: blue;"'
+            debug_div.innerHTML += f'<p {style}>{message}</p>'
+    except:
+        pass  # Ignore errors if debug element doesn't exist
 
 # Run initialization when the script loads
 log_message("Script loaded, running manual initialization...")
@@ -577,20 +598,5 @@ try:
     # Create a global manual init function
     js.window.manualInit = create_proxy(init)
     
-    # Add a manual init button after a delay
-    def add_manual_button():
-        try:
-            debug_div = js.document.getElementById("debug-output")
-            if debug_div:
-                debug_div.innerHTML += '<p><button onclick="window.manualInit()" class="button primary">Manual Init</button></p>'
-        except Exception as e:
-            log_message(f"Error adding manual button: {str(e)}")
-    
-    js.setTimeout(create_proxy(add_manual_button), 1000)
-    
 except Exception as e:
-    log_message(f"ERROR during script initialization: {str(e)}")
-    try:
-        js.document.getElementById("debug-output").innerHTML += f'<p class="error">Script initialization error: {str(e)}</p>'
-    except:
-        pass 
+    log_message(f"ERROR during script initialization: {str(e)}") 
