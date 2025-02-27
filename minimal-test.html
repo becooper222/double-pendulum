@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal PyScript Test</title>
+    
+    <!-- Using a specific PyScript version -->
+    <link rel="stylesheet" href="https://pyscript.net/releases/2023.03.1/pyscript.css" />
+    <script defer src="https://pyscript.net/releases/2023.03.1/pyscript.js"></script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #output {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            min-height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Minimal PyScript Test</h1>
+    <p>This is the simplest possible PyScript test.</p>
+    
+    <div id="output">Output will appear here...</div>
+    
+    <py-script>
+# This is the simplest possible PyScript code
+import js
+
+# Get the output element
+output = js.document.getElementById("output")
+
+# Display a simple message
+output.innerHTML = '<p>Hello from PyScript!</p>'
+
+# Display Python version
+import sys
+output.innerHTML += f'<p>Python version: {sys.version}</p>'
+
+# Try a simple calculation
+result = 2 + 2
+output.innerHTML += f'<p>2 + 2 = {result}</p>'
+    </py-script>
+</body>
+</html> 

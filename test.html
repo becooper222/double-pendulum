@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyScript Canvas Test</title>
+    
+    <!-- PyScript - Using specific version instead of latest -->
+    <link rel="stylesheet" href="https://pyscript.net/releases/2023.03.1/pyscript.css" />
+    <script defer src="https://pyscript.net/releases/2023.03.1/pyscript.js"></script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        canvas {
+            border: 1px solid #000;
+            background-color: #f5f5f5;
+            display: block; /* Ensure proper display */
+        }
+        button {
+            padding: 10px 15px;
+            margin: 10px 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #output {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            min-height: 100px;
+            overflow-y: auto; /* Add scrolling for many messages */
+            max-height: 300px;
+        }
+    </style>
+    
+    <!-- PyScript configuration -->
+    <py-config>
+        packages = ["numpy"]
+    </py-config>
+</head>
+<body>
+    <h1>PyScript Canvas Test</h1>
+    <p>This page tests basic PyScript and canvas functionality.</p>
+    
+    <canvas id="test-canvas" width="400" height="300"></canvas>
+    <br>
+    <button id="test-button">Draw Test Shape</button>
+    <button id="clear-button">Clear Canvas</button>
+    
+    <div id="output">Status messages will appear here.</div>
+    
+    <py-script>
+import js
+import math
+from pyodide.ffi import create_proxy
+
+# Get elements
+canvas = js.document.getElementById("test-canvas")
+output_div = js.document.getElementById("output")
+
+# Make sure we have a valid canvas before proceeding
+if canvas is None:
+    js.console.error("Canvas element not found!")
+else:
+    # Get the 2D context
+    try:
+        ctx = canvas.getContext("2d")
+        js.console.log("Canvas context obtained successfully")
+    except Exception as e:
+        js.console.error(f"Error getting canvas context: {str(e)}")
+
+def log_message(message):
+    """Add a message to the output div and console"""
+    js.console.log(message)
+    output_div.innerHTML += f"<p>{message}</p>"
+    # Auto-scroll to bottom
+    output_div.scrollTop = output_div.scrollHeight
+
+def draw_test_shape(event=None):
+    """Draw a simple test shape on the canvas"""
+    try:
+        log_message("Drawing test shape...")
+        
+        # Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        
+        # Draw a rectangle
+        ctx.fillStyle = "blue"
+        ctx.fillRect(50, 50, 100, 100)
+        
+        # Draw a circle
+        ctx.beginPath()
+        ctx.arc(250, 150, 50, 0, 2 * math.pi)  # Using math.pi instead of hardcoded value
+        ctx.fillStyle = "red"
+        ctx.fill()
+        
+        # Draw a line
+        ctx.beginPath()
+        ctx.moveTo(50, 200)
+        ctx.lineTo(350, 200)
+        ctx.strokeStyle = "green"
+        ctx.lineWidth = 5
+        ctx.stroke()
+        
+        log_message("Test shape drawn successfully")
+    except Exception as e:
+        log_message(f"Error drawing shape: {str(e)}")
+        js.console.error(f"Canvas error: {str(e)}")
+
+def clear_canvas(event=None):
+    """Clear the canvas"""
+    try:
+        log_message("Clearing canvas...")
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        log_message("Canvas cleared")
+    except Exception as e:
+        log_message(f"Error clearing canvas: {str(e)}")
+        js.console.error(f"Canvas error: {str(e)}")
+
+# Add event listeners to buttons
+try:
+    test_button = js.document.getElementById("test-button")
+    clear_button = js.document.getElementById("clear-button")
+    
+    if test_button and clear_button:
+        test_button.addEventListener("click", create_proxy(draw_test_shape))
+        clear_button.addEventListener("click", create_proxy(clear_canvas))
+        log_message("Event listeners added successfully")
+    else:
+        log_message("Error: Could not find buttons")
+except Exception as e:
+    log_message(f"Error setting up event listeners: {str(e)}")
+
+# Log initial message
+log_message("PyScript loaded. Click 'Draw Test Shape' to test canvas.")
+
+# Draw the test shape automatically after a short delay
+js.setTimeout(create_proxy(draw_test_shape), 1000)
+    </py-script>
+</body>
+</html> 

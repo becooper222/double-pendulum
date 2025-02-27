@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple PyScript Test</title>
+    
+    <!-- Using a specific PyScript version -->
+    <link rel="stylesheet" href="https://pyscript.net/releases/2023.03.1/pyscript.css" />
+    <script defer src="https://pyscript.net/releases/2023.03.1/pyscript.js"></script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #output {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            min-height: 100px;
+        }
+        button {
+            padding: 10px 15px;
+            margin: 10px 0;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple PyScript Test</h1>
+    <p>This is a minimal test to check if PyScript is working in your browser.</p>
+    
+    <button id="test-button">Run Python Test</button>
+    <div id="output">Results will appear here...</div>
+    
+    <py-script>
+import js
+from pyodide.ffi import create_proxy
+
+# Get the output element
+output = js.document.getElementById("output")
+
+def run_test(event):
+    """Run a simple Python test and display the results"""
+    output.innerHTML = "<p>Running Python test...</p>"
+    
+    try:
+        # Basic Python operations
+        result = "Python is working! Here are some test results:<br>"
+        result += f"1 + 1 = {1 + 1}<br>"
+        result += f"'Hello' + ' World' = {'Hello' + ' World'}<br>"
+        
+        # Try to import numpy
+        try:
+            import numpy as np
+            result += f"NumPy is working! π ≈ {np.pi:.6f}<br>"
+            result += f"Random number from NumPy: {np.random.random()}<br>"
+        except ImportError:
+            result += "NumPy import failed.<br>"
+        
+        # Display success message
+        output.innerHTML = f'<p style="color: green;">{result}</p>'
+        
+    except Exception as e:
+        # Display error message
+        output.innerHTML = f'<p style="color: red;">Error: {str(e)}</p>'
+
+# Add click event listener to the button
+js.document.getElementById("test-button").addEventListener("click", create_proxy(run_test))
+
+# Show initial message
+output.innerHTML += "<p>PyScript loaded successfully! Click the button to run tests.</p>"
+    </py-script>
+</body>
+</html> 

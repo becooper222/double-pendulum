@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Double Pendulum Simulator</title>
+    
+    <!-- PyScript - Using specific version instead of latest -->
+    <link rel="stylesheet" href="https://pyscript.net/releases/2023.03.1/pyscript.css" />
+    <script defer src="https://pyscript.net/releases/2023.03.1/pyscript.js"></script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- PyScript configuration -->
+    <py-config>
+        packages = ["numpy"]
+        [[fetch]]
+        files = ["double_pendulum.py", "app.py"]
+    </py-config>
+    
+    <script>
+        // Add a simple JavaScript function to check if PyScript is loaded
+        window.addEventListener('DOMContentLoaded', (event) => {
+            console.log('DOM fully loaded');
+            
+            // Check if canvas element exists
+            const canvas = document.getElementById('pendulum-canvas');
+            if (canvas) {
+                console.log('Canvas element found:', canvas);
+                try {
+                    const ctx = canvas.getContext('2d');
+                    console.log('Canvas context obtained:', ctx);
+                    
+                    // Draw a simple shape to verify canvas works
+                    ctx.fillStyle = '#00FF00';
+                    ctx.fillRect(10, 10, 50, 50);
+                    console.log('Test rectangle drawn on canvas');
+                } catch (e) {
+                    console.error('Error accessing canvas context:', e);
+                }
+            } else {
+                console.error('Canvas element not found!');
+            }
+            
+            // Check if PyScript loaded every second
+            let checkCount = 0;
+            const checkInterval = setInterval(() => {
+                checkCount++;
+                console.log(`Checking PyScript (attempt ${checkCount})...`);
+                
+                if (window.pyscript && window.pyscript.interpreter) {
+                    console.log("PyScript interpreter detected!");
+                    clearInterval(checkInterval);
+                }
+                
+                if (checkCount > 30) {  // Increased timeout to 30 seconds
+                    console.log("PyScript check timed out");
+                    clearInterval(checkInterval);
+                    document.getElementById('debug-output').innerHTML += 
+                        '<p class="error">PyScript loading timed out. Try refreshing the page or using a different browser.</p>';
+                }
+            }, 1000);
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Double Pendulum Simulator</h1>
+            <p>A chaotic system visualizer</p>
+        </header>
+        
+        <div class="simulator">
+            <div class="controls-container">
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="theta1">First Pendulum Angle (θ₁):</label>
+                        <input type="number" id="theta1" value="0" min="-180" max="180">
+                        <span class="unit">degrees</span>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="theta2">Second Pendulum Angle (θ₂):</label>
+                        <input type="number" id="theta2" value="0.00001" min="-180" max="180" step="0.00001">
+                        <span class="unit">degrees</span>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="simulation-length">Simulation Length:</label>
+                        <input type="number" id="simulation-length" value="60" min="1" max="300">
+                        <span class="unit">seconds</span>
+                    </div>
+                    
+                    <div class="control-group checkbox full-line">
+                        <input type="checkbox" id="show-trail" checked>
+                        <label for="show-trail">Show Trail</label>
+                    </div>
+                    
+                    <div class="control-group checkbox full-line" id="full-trail-container" style="display: none;">
+                        <input type="checkbox" id="keep-full-trail">
+                        <label for="keep-full-trail">Keep Full Trail History</label>
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button id="play-button" class="button primary">Play/Pause</button>
+                    <button id="restart-button" class="button secondary">Restart</button>
+                    <div id="restart-notice" style="display: none;" class="notice">Click Restart to apply new values</div>
+                </div>
+                
+                <div class="info">
+                    <div id="time-display">Time: 0.00s / 60.00s</div>
+                </div>
+            </div>
+            
+            <div class="canvas-container">
+                <canvas id="pendulum-canvas" width="800" height="600"></canvas>
+            </div>
+            
+            <!-- Debug output area - can be hidden with CSS later -->
+            <div id="debug-output" class="debug-container">
+                <h3>Debug Information</h3>
+                <p>If you're seeing this message and not seeing the pendulum, check your browser console for errors.</p>
+                <p>PyScript Status: <span id="pyscript-status">Loading...</span></p>
+                <div class="debug-tip">
+                    <p><strong>Tip:</strong> If the buttons aren't working, try the debug buttons below or refresh the page.</p>
+                    <p>You should see a red test rectangle in the canvas if initialization is successful.</p>
+                </div>
+                <div class="debug-buttons">
+                    <button onclick="document.getElementById('debug-output').style.display='none'" class="button secondary">Hide Debug Info</button>
+                    <button onclick="window.location.reload()" class="button primary">Reload Page</button>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Double Pendulum Simulator - Physics in action</p>
+        </footer>
+    </div>
+    
+    <!-- Main Python script -->
+    <py-script src="app.py"></py-script>
+</body>
+</html> 
