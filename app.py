@@ -14,7 +14,7 @@ canvas = None
 ctx = None
 width = 0
 height = 0
-scale = 100  # Scale factor for the pendulum visualization
+scale = 90  # Scale factor reduced for better visibility (was 100)
 center_x = 0
 center_y = 0
 show_trail = True
@@ -58,7 +58,7 @@ def setup_canvas():
         
         # Calculate center coordinates
         center_x = width / 2
-        center_y = height / 3  # Position pendulum in the upper third of canvas
+        center_y = height / 2.5  # Position pendulum centered in the upper part of canvas
         
         # Draw a test rectangle to verify the canvas is working
         try:
