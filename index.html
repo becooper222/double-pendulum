@@ -12,28 +12,33 @@
             <label for="theta1">θ₁:</label>
             <input type="number" id="theta1" value="120" min="-180" max="180" step="1">
             <span class="unit">°</span>
+            <span class="hint">Upper arm angle</span>
         </div>
         <div class="control-group">
             <label for="theta2">θ₂:</label>
             <input type="number" id="theta2" value="120" min="-180" max="180" step="1">
             <span class="unit">°</span>
+            <span class="hint">Lower arm angle</span>
         </div>
         <div class="control-group">
             <label for="epsilon">ε:</label>
-            <input type="number" id="epsilon" value="0.001" min="0" max="10" step="0.001">
+            <input type="number" id="epsilon" value="0.1" min="0" max="10" step="0.001">
             <span class="unit">°</span>
+            <span class="hint">Offset added to B's θ₁</span>
         </div>
         <div class="control-group">
             <label for="sim-length">Duration:</label>
             <input type="number" id="sim-length" value="60" min="1" max="300" step="1">
             <span class="unit">s</span>
+            <span class="hint">Simulation run time</span>
         </div>
         <div class="control-group checkbox">
             <input type="checkbox" id="show-trail" checked>
             <label for="show-trail">Trail</label>
+            <span class="hint">Show tip path</span>
         </div>
         <div class="control-buttons">
-            <button id="btn-play" class="btn primary">Play</button>
+            <button id="btn-play" class="btn primary">Pause</button>
             <button id="btn-restart" class="btn secondary">Restart</button>
         </div>
     </div>
@@ -326,10 +331,14 @@ document.getElementById('btn-restart').addEventListener('click', () => {
 
 // ── Init ────────────────────────────────────────────────────────────────────
 initPendulums();
-// Wait a tick for ResizeObserver to fire, then draw
+// Wait a tick for ResizeObserver to fire, then auto-play
 requestAnimationFrame(() => {
     sizeCanvases();
     draw();
+    playing = true;
+    lastTimestamp = null;
+    accumulated = 0;
+    requestAnimationFrame(animate);
 });
 </script>
 </body>
