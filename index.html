@@ -3,127 +3,334 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Double Pendulum Simulator</title>
-    
-    <!-- PyScript - Using specific version instead of latest -->
-    <link rel="stylesheet" href="https://pyscript.net/releases/2023.03.1/pyscript.css" />
-    <script defer src="https://pyscript.net/releases/2023.03.1/pyscript.js"></script>
-    
-    <!-- Custom Styles -->
+    <title>Double Pendulum — Chaos Demo</title>
     <link rel="stylesheet" href="style.css">
-    
-    <!-- PyScript configuration -->
-    <py-config>
-        packages = ["numpy"]
-        [[fetch]]
-        files = ["double_pendulum.py", "app.py"]
-    </py-config>
-    
-    <script>
-        // Add a simple JavaScript function to check if PyScript is loaded
-        window.addEventListener('DOMContentLoaded', (event) => {
-            console.log('DOM fully loaded');
-            
-            // Check if canvas element exists
-            const canvas = document.getElementById('pendulum-canvas');
-            if (canvas) {
-                console.log('Canvas element found:', canvas);
-                try {
-                    const ctx = canvas.getContext('2d');
-                    console.log('Canvas context obtained:', ctx);
-                    
-                    // Draw a simple shape to verify canvas works
-                    ctx.fillStyle = '#00FF00';
-                    ctx.fillRect(10, 10, 50, 50);
-                    console.log('Test rectangle drawn on canvas');
-                } catch (e) {
-                    console.error('Error accessing canvas context:', e);
-                }
-            } else {
-                console.error('Canvas element not found!');
-            }
-            
-            // Check if PyScript loaded every second
-            let checkCount = 0;
-            const checkInterval = setInterval(() => {
-                checkCount++;
-                console.log(`Checking PyScript (attempt ${checkCount})...`);
-                
-                if (window.pyscript && window.pyscript.interpreter) {
-                    console.log("PyScript interpreter detected!");
-                    clearInterval(checkInterval);
-                }
-                
-                if (checkCount > 30) {  // Increased timeout to 30 seconds
-                    console.log("PyScript check timed out");
-                    clearInterval(checkInterval);
-                    document.getElementById('debug-output').innerHTML += 
-                        '<p class="error">PyScript loading timed out. Try refreshing the page or using a different browser.</p>';
-                }
-            }, 1000);
-        });
-    </script>
 </head>
 <body>
-    <div class="container embedded">
-        <div class="simulator">
-            <div class="compact-layout">
-                <div class="vertical-controls">
-                    <div class="info">
-                        <div id="time-display">Time: 0.00s / 60.00s</div>
-                    </div>
-                    
-                    <div class="stacked-inputs">
-                        <div class="compact-group">
-                            <label for="theta1">θ₁:</label>
-                            <input type="number" id="theta1" value="0" min="-180" max="180" class="small-input">
-                            <span class="small-unit">°</span>
-                        </div>
-                        
-                        <div class="compact-group">
-                            <label for="theta2">θ₂:</label>
-                            <input type="number" id="theta2" value="0.001" min="-180" max="180" step="0.001" class="small-input">
-                            <span class="small-unit">°</span>
-                        </div>
-                        
-                        <div class="compact-group">
-                            <label for="simulation-length">Length:</label>
-                            <input type="number" id="simulation-length" value="60" min="1" max="300" class="small-input">
-                            <span class="small-unit">s</span>
-                        </div>
-                    </div>
-                    
-                    <div class="compact-buttons">
-                        <button id="play-button" class="button primary small-button">Play/Pause</button>
-                        <button id="restart-button" class="button secondary small-button">Restart</button>
-                        <div id="restart-notice" style="display: none;" class="notice small-notice">Restart to apply</div>
-                    </div>
-                    
-                    <div class="compact-checkboxes">
-                        <div class="control-group checkbox compact-checkbox">
-                            <input type="checkbox" id="show-trail" checked>
-                            <label for="show-trail">Trail</label>
-                        </div>
-                        
-                        <div class="control-group checkbox compact-checkbox" id="full-trail-container">
-                            <input type="checkbox" id="keep-full-trail">
-                            <label for="keep-full-trail">Full History</label>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="canvas-container">
-                    <canvas id="pendulum-canvas" width="800" height="600"></canvas>
-                </div>
-            </div>
+    <div class="controls">
+        <div class="control-group">
+            <label for="theta1">θ₁:</label>
+            <input type="number" id="theta1" value="120" min="-180" max="180" step="1">
+            <span class="unit">°</span>
         </div>
-        
-        <footer class="compact-footer">
-            <p>Double Pendulum Simulator - Physics in action</p>
-        </footer>
+        <div class="control-group">
+            <label for="theta2">θ₂:</label>
+            <input type="number" id="theta2" value="120" min="-180" max="180" step="1">
+            <span class="unit">°</span>
+        </div>
+        <div class="control-group">
+            <label for="epsilon">ε:</label>
+            <input type="number" id="epsilon" value="0.001" min="0" max="10" step="0.001">
+            <span class="unit">°</span>
+        </div>
+        <div class="control-group">
+            <label for="sim-length">Duration:</label>
+            <input type="number" id="sim-length" value="60" min="1" max="300" step="1">
+            <span class="unit">s</span>
+        </div>
+        <div class="control-group checkbox">
+            <input type="checkbox" id="show-trail" checked>
+            <label for="show-trail">Trail</label>
+        </div>
+        <div class="control-buttons">
+            <button id="btn-play" class="btn primary">Play</button>
+            <button id="btn-restart" class="btn secondary">Restart</button>
+        </div>
     </div>
-    
-    <!-- Main Python script -->
-    <py-script src="app.py"></py-script>
+
+    <div class="panels" id="panels">
+        <div class="panel">
+            <div class="panel-label">Pendulum A <span class="panel-sub">(θ₁, θ₂)</span></div>
+            <canvas id="canvas-a"></canvas>
+        </div>
+        <div class="panel">
+            <div class="panel-label">Pendulum B <span class="panel-sub">(θ₁ + ε, θ₂)</span></div>
+            <canvas id="canvas-b"></canvas>
+        </div>
+    </div>
+
+    <div class="status" id="status">Time: 0.00s / 60.00s</div>
+
+<script>
+// ── DoublePendulum (ported from double_pendulum.py) ─────────────────────────
+class DoublePendulum {
+    constructor(theta1, theta2, length1 = 1, length2 = 1,
+                mass1 = 1, mass2 = 1, gravity = 9.8, dt = 0.01) {
+        this.theta1 = theta1;
+        this.theta2 = theta2;
+        this.omega1 = 0;
+        this.omega2 = 0;
+        this.L1 = length1;
+        this.L2 = length2;
+        this.m1 = mass1;
+        this.m2 = mass2;
+        this.g = gravity;
+        this.dt = dt;
+        this.time = 0;
+        this.trail = [];
+        this.maxTrail = 2000;
+        this.updatePositions();
+    }
+
+    updatePositions() {
+        this.x1 =  this.L1 * Math.sin(this.theta1);
+        this.y1 =  this.L1 * Math.cos(this.theta1);
+        this.x2 =  this.x1 + this.L2 * Math.sin(this.theta2);
+        this.y2 =  this.y1 + this.L2 * Math.cos(this.theta2);
+        this.trail.push([this.x2, this.y2]);
+        if (this.trail.length > this.maxTrail) {
+            this.trail.splice(0, this.trail.length - this.maxTrail);
+        }
+    }
+
+    // Derivatives: returns [dθ1, dθ2, dω1, dω2]
+    derivs(state) {
+        const [t1, t2, w1, w2] = state;
+        const { m1, m2, L1, L2, g } = this;
+        const delta = t1 - t2;
+        const sinD = Math.sin(delta);
+        const cosD = Math.cos(delta);
+        const denom = 2 * m1 + m2 - m2 * Math.cos(2 * delta);
+
+        const a1 = (-g * (2 * m1 + m2) * Math.sin(t1)
+                     - m2 * g * Math.sin(t1 - 2 * t2)
+                     - 2 * sinD * m2 * (w2 * w2 * L2 + w1 * w1 * L1 * cosD))
+                   / (L1 * denom);
+
+        const a2 = (2 * sinD * (w1 * w1 * L1 * (m1 + m2)
+                     + g * (m1 + m2) * Math.cos(t1)
+                     + w2 * w2 * L2 * m2 * cosD))
+                   / (L2 * denom);
+
+        return [w1, w2, a1, a2];
+    }
+
+    step() {
+        const dt = this.dt;
+        const y = [this.theta1, this.theta2, this.omega1, this.omega2];
+
+        const k1 = this.derivs(y);
+        const k2 = this.derivs(y.map((v, i) => v + 0.5 * dt * k1[i]));
+        const k3 = this.derivs(y.map((v, i) => v + 0.5 * dt * k2[i]));
+        const k4 = this.derivs(y.map((v, i) => v + dt * k3[i]));
+
+        for (let i = 0; i < 4; i++) {
+            y[i] += (dt / 6) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
+        }
+
+        this.theta1 = y[0];
+        this.theta2 = y[1];
+        this.omega1 = y[2];
+        this.omega2 = y[3];
+        this.time += dt;
+        this.updatePositions();
+    }
+
+    reset(theta1, theta2) {
+        this.theta1 = theta1;
+        this.theta2 = theta2;
+        this.omega1 = 0;
+        this.omega2 = 0;
+        this.time = 0;
+        this.trail = [];
+        this.updatePositions();
+    }
+}
+
+// ── App State ───────────────────────────────────────────────────────────────
+const DEG = Math.PI / 180;
+let pendA, pendB;
+let playing = false;
+let lastTimestamp = null;
+let accumulated = 0;
+const DT = 0.01;
+
+function readInputs() {
+    return {
+        theta1: parseFloat(document.getElementById('theta1').value) * DEG,
+        theta2: parseFloat(document.getElementById('theta2').value) * DEG,
+        epsilon: parseFloat(document.getElementById('epsilon').value) * DEG,
+        simLength: parseFloat(document.getElementById('sim-length').value),
+        showTrail: document.getElementById('show-trail').checked,
+    };
+}
+
+function initPendulums() {
+    const { theta1, theta2, epsilon } = readInputs();
+    pendA = new DoublePendulum(theta1, theta2);
+    pendB = new DoublePendulum(theta1 + epsilon, theta2);
+    accumulated = 0;
+    lastTimestamp = null;
+    updateStatus();
+}
+
+// ── Canvas Sizing ───────────────────────────────────────────────────────────
+const canvasA = document.getElementById('canvas-a');
+const canvasB = document.getElementById('canvas-b');
+
+function sizeCanvases() {
+    [canvasA, canvasB].forEach(c => {
+        const rect = c.parentElement.getBoundingClientRect();
+        // Account for the label height
+        const label = c.parentElement.querySelector('.panel-label');
+        const labelH = label ? label.offsetHeight : 0;
+        const w = rect.width;
+        const h = rect.height - labelH;
+        const dpr = window.devicePixelRatio || 1;
+        c.width = w * dpr;
+        c.height = h * dpr;
+        c.style.width = w + 'px';
+        c.style.height = h + 'px';
+    });
+}
+
+const ro = new ResizeObserver(sizeCanvases);
+ro.observe(document.getElementById('panels'));
+
+// ── Drawing ─────────────────────────────────────────────────────────────────
+function drawPendulum(canvas, pend, colors, showTrail) {
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const W = canvas.width;
+    const H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // Background
+    ctx.fillStyle = '#1a1a2e';
+    ctx.fillRect(0, 0, W, H);
+
+    const totalLen = pend.L1 + pend.L2;
+    const scale = 0.75 * Math.min(W, H) / (2 * totalLen);
+    const cx = W / 2;
+    const cy = H * 0.4;
+
+    // Trail
+    if (showTrail && pend.trail.length > 1) {
+        ctx.beginPath();
+        ctx.strokeStyle = colors.trail;
+        ctx.lineWidth = 1.5 * dpr;
+        ctx.globalAlpha = 0.7;
+        for (let i = 0; i < pend.trail.length; i++) {
+            const px = cx + pend.trail[i][0] * scale;
+            const py = cy + pend.trail[i][1] * scale;
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+    }
+
+    // Arm positions
+    const ax1 = cx + pend.x1 * scale;
+    const ay1 = cy + pend.y1 * scale;
+    const ax2 = cx + pend.x2 * scale;
+    const ay2 = cy + pend.y2 * scale;
+
+    // Arms
+    ctx.strokeStyle = '#cccccc';
+    ctx.lineWidth = 2 * dpr;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(ax1, ay1);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(ax1, ay1);
+    ctx.lineTo(ax2, ay2);
+    ctx.stroke();
+
+    // Pivot
+    ctx.beginPath();
+    ctx.arc(cx, cy, 4 * dpr, 0, 2 * Math.PI);
+    ctx.fillStyle = '#888';
+    ctx.fill();
+
+    // Bob 1
+    ctx.beginPath();
+    ctx.arc(ax1, ay1, 8 * dpr, 0, 2 * Math.PI);
+    ctx.fillStyle = colors.bob1;
+    ctx.fill();
+
+    // Bob 2
+    ctx.beginPath();
+    ctx.arc(ax2, ay2, 8 * dpr, 0, 2 * Math.PI);
+    ctx.fillStyle = colors.bob2;
+    ctx.fill();
+}
+
+const colorsA = { bob1: '#4a9eff', bob2: '#ff6b6b', trail: '#ff9f43' };
+const colorsB = { bob1: '#2ecc71', bob2: '#a55eea', trail: '#00d2d3' };
+
+function draw() {
+    const { showTrail } = readInputs();
+    drawPendulum(canvasA, pendA, colorsA, showTrail);
+    drawPendulum(canvasB, pendB, colorsB, showTrail);
+}
+
+// ── Status ──────────────────────────────────────────────────────────────────
+function updateStatus() {
+    const { simLength } = readInputs();
+    const t = pendA ? pendA.time : 0;
+    document.getElementById('status').textContent =
+        `Time: ${t.toFixed(2)}s / ${simLength.toFixed(2)}s`;
+}
+
+// ── Animation Loop ──────────────────────────────────────────────────────────
+function animate(timestamp) {
+    if (!playing) return;
+
+    if (lastTimestamp === null) lastTimestamp = timestamp;
+    let elapsed = (timestamp - lastTimestamp) / 1000;
+    lastTimestamp = timestamp;
+
+    // Clamp to avoid spiral of death
+    if (elapsed > 0.1) elapsed = 0.1;
+
+    accumulated += elapsed;
+    const { simLength } = readInputs();
+
+    while (accumulated >= DT) {
+        if (pendA.time >= simLength) {
+            playing = false;
+            document.getElementById('btn-play').textContent = 'Play';
+            break;
+        }
+        pendA.step();
+        pendB.step();
+        accumulated -= DT;
+    }
+
+    draw();
+    updateStatus();
+
+    if (playing) requestAnimationFrame(animate);
+}
+
+// ── Controls ────────────────────────────────────────────────────────────────
+document.getElementById('btn-play').addEventListener('click', () => {
+    playing = !playing;
+    document.getElementById('btn-play').textContent = playing ? 'Pause' : 'Play';
+    if (playing) {
+        lastTimestamp = null;
+        accumulated = 0;
+        requestAnimationFrame(animate);
+    }
+});
+
+document.getElementById('btn-restart').addEventListener('click', () => {
+    playing = false;
+    document.getElementById('btn-play').textContent = 'Play';
+    initPendulums();
+    draw();
+});
+
+// ── Init ────────────────────────────────────────────────────────────────────
+initPendulums();
+// Wait a tick for ResizeObserver to fire, then draw
+requestAnimationFrame(() => {
+    sizeCanvases();
+    draw();
+});
+</script>
 </body>
-</html> 
+</html>

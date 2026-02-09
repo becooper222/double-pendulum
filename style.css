@@ -1,15 +1,3 @@
-/* Global Styles */
-:root {
-    --primary-color: #3498db;
-    --secondary-color: #2c3e50;
-    --accent-color: #e74c3c;
-    --background-color: #f5f7fa;
-    --text-color: #34495e;
-    --border-radius: 8px;
-    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --transition: all 0.3s ease;
-}
-
 * {
     margin: 0;
     padding: 0;
@@ -17,399 +5,162 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--background-color);
-    color: var(--text-color);
-    line-height: 1.6;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f0f23;
+    color: #ccc;
     height: 100vh;
     display: flex;
     flex-direction: column;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Embedded Container Styles */
-.container.embedded {
-    max-width: 100%;
-    padding: 0.5rem;
-    margin: 0;
-    height: 100%;
     overflow: hidden;
 }
 
-/* Header Styles */
-header {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-header h1 {
-    color: var(--secondary-color);
-    margin-bottom: 0.5rem;
-    font-size: 2.5rem;
-}
-
-header p {
-    color: var(--text-color);
-    font-size: 1.2rem;
-    opacity: 0.8;
-}
-
-/* Simulator Container */
-.simulator {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    background-color: white;
-    border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
-    padding: 2rem;
-    margin-bottom: 2rem;
-}
-
-/* Embedded Simulator Style */
-.container.embedded .simulator {
-    padding: 0.5rem;
-    margin-bottom: 0.5rem;
-    gap: 0.5rem;
-    box-shadow: none;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Compact Layout */
-.compact-layout {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    flex-grow: 1;
-    height: 100%;
-    overflow: hidden;
-}
-
-/* Vertical Controls */
-.vertical-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.25rem;
-    background-color: rgba(248, 249, 250, 0.7);
-    border-radius: var(--border-radius);
-}
-
-/* Stacked Inputs Section */
-.stacked-inputs {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    width: 100%;
-}
-
-.compact-group {
+/* ── Controls Bar ─────────────────────────────────────────────────────────── */
+.controls {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
+    background: #16213e;
+    border-bottom: 1px solid #1a1a3e;
+    flex-wrap: wrap;
 }
 
-.compact-group label {
-    font-size: 0.8rem;
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.control-group label {
+    font-size: 0.85rem;
     font-weight: 600;
-    color: var(--secondary-color);
-    min-width: 3rem;
-    text-align: right;
+    color: #8892b0;
 }
 
-.small-input {
-    width: 4rem;
-    padding: 0.25rem;
-    font-size: 0.8rem;
-    border: 1px solid #ddd;
+.control-group input[type="number"] {
+    width: 5rem;
+    padding: 0.25rem 0.4rem;
+    font-size: 0.85rem;
+    background: #1a1a2e;
+    color: #e6e6e6;
+    border: 1px solid #333;
     border-radius: 4px;
 }
 
-.small-unit {
+.control-group input[type="number"]:focus {
+    outline: none;
+    border-color: #4a9eff;
+}
+
+.control-group.checkbox {
+    gap: 0.4rem;
+}
+
+.control-group.checkbox input[type="checkbox"] {
+    accent-color: #4a9eff;
+}
+
+.unit {
     font-size: 0.8rem;
     color: #666;
 }
 
-/* Compact Buttons */
-.compact-buttons {
+.control-buttons {
     display: flex;
     gap: 0.5rem;
-    align-items: center;
-    width: 100%;
-    justify-content: flex-start;
-    margin: 0.25rem 0;
+    margin-left: auto;
 }
 
-.small-button {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.8rem;
-    min-width: unset;
-}
-
-.small-notice {
-    font-size: 0.7rem;
-    padding: 0.1rem 0.25rem;
-}
-
-/* Compact Checkboxes */
-.compact-checkboxes {
-    display: flex;
-    flex-direction: row;
-    gap: 0.75rem;
-    width: 100%;
-    align-items: center;
-}
-
-.compact-checkbox {
-    margin: 0;
-    padding: 0;
-    display: flex;
-    align-items: center;
-}
-
-.compact-checkbox label {
-    font-size: 0.8rem;
-    margin-left: 0.25rem;
-}
-
-.compact-checkbox input[type="checkbox"] {
-    width: 14px;
-    height: 14px;
-    margin: 0;
-}
-
-/* Info Section */
-.info {
-    background-color: #f8f9fa;
-    padding: 1rem;
-    border-radius: var(--border-radius);
-    text-align: center;
-    font-weight: 600;
-}
-
-/* Embedded Info Style */
-.container.embedded .info {
-    padding: 0.25rem;
-    font-size: 0.8rem;
-    background-color: transparent;
-    width: 100%;
-    text-align: left;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    margin-bottom: 0.25rem;
-}
-
-/* Restart Notice */
-.notice {
-    color: #e74c3c;
-    font-weight: bold;
-    padding: 5px 10px;
-    border-radius: var(--border-radius);
-    margin-left: 10px;
-    animation: fadeIn 0.5s;
-}
-
-.notice.flash {
-    animation: flash 1s;
-}
-
-@keyframes flash {
-    0%, 100% { background-color: transparent; }
-    50% { background-color: rgba(231, 76, 60, 0.2); }
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-/* Canvas Container */
-.canvas-container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    background-color: #f8f9fa;
-    border-radius: var(--border-radius);
-    overflow: hidden;
-    flex-grow: 1;
-    min-height: 0;
-}
-
-/* Embedded Canvas Container */
-.container.embedded .canvas-container {
-    margin-bottom: 0.25rem;
-    margin-top: 0.25rem;
-    background-color: transparent;
-    flex-grow: 1;
-    min-height: 0;
-}
-
-#pendulum-canvas {
-    border-radius: var(--border-radius);
-    max-width: 100%;
-    height: 100%;
-    width: auto;
-    object-fit: contain;
-    background-color: white;
-    border: 1px solid #ddd;
-    display: block;
-}
-
-.container.embedded #pendulum-canvas {
+.btn {
+    padding: 0.3rem 1rem;
     border: none;
-    width: 100%;
-    height: 100%;
-}
-
-/* Debug Container */
-.debug-container {
-    background-color: #fff3f3;
-    border: 1px solid #e74c3c;
-    border-radius: var(--border-radius);
-    padding: 1rem;
-    margin-top: 1rem;
-    font-family: monospace;
-}
-
-.debug-container h3 {
-    color: var(--accent-color);
-    margin-bottom: 0.5rem;
-}
-
-.debug-container p {
-    margin-bottom: 1rem;
-}
-
-.debug-container .error {
-    color: #e74c3c;
-    font-weight: bold;
-}
-
-.debug-tip {
-    background-color: #f0f8ff;
-    border-left: 4px solid #3498db;
-    padding: 0.5rem 1rem;
-    margin: 1rem 0;
-    font-family: sans-serif;
-}
-
-.debug-buttons {
-    margin: 1rem 0;
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.debug-buttons button {
-    margin: 0;
-}
-
-/* Footer Styles */
-footer {
-    text-align: center;
-    margin-top: 2rem;
-    padding: 1rem;
-    background-color: #e9ecef;
-}
-
-.compact-footer {
-    font-size: 0.75rem;
-    text-align: center;
-    padding: 0.2rem;
-    margin-top: 0.25rem;
-    color: #6c757d;
-    background-color: transparent;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-    .container {
-        padding: 1rem;
-    }
-    
-    .simulator {
-        padding: 1.5rem;
-    }
-    
-    .controls {
-        grid-template-columns: 1fr;
-    }
-    
-    .buttons {
-        flex-direction: column;
-    }
-    
-    .button {
-        width: 100%;
-    }
-    
-    .canvas-container {
-        height: auto;
-    }
-    
-    #pendulum-canvas {
-        width: 100%;
-        height: auto;
-    }
-}
-
-/* PyScript Adjustments */
-py-terminal, py-repl {
-    display: none;
-}
-
-.py-error {
-    background-color: #fff3f3;
-    color: #e74c3c;
-    padding: 1rem;
-    border-radius: var(--border-radius);
-    margin: 1rem 0;
-    font-family: monospace;
-    white-space: pre-wrap;
-}
-
-/* Create a separate class for checkboxes that need to be on their own lines */
-.control-group.checkbox.full-line {
-    display: flex;
-    width: 100%;
-}
-
-/* Button Styles */
-.button {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: var(--border-radius);
-    font-size: 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
-    transition: var(--transition);
-    min-width: 120px;
+    transition: background 0.2s;
+}
+
+.btn.primary {
+    background: #4a9eff;
+    color: #fff;
+}
+
+.btn.primary:hover {
+    background: #3a8eef;
+}
+
+.btn.secondary {
+    background: #2a2a4a;
+    color: #ccc;
+}
+
+.btn.secondary:hover {
+    background: #3a3a5a;
+}
+
+/* ── Panels ───────────────────────────────────────────────────────────────── */
+.panels {
+    flex: 1;
+    display: flex;
+    gap: 2px;
+    min-height: 0;
+}
+
+.panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.panel-label {
     text-align: center;
+    padding: 0.3rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #8892b0;
+    background: #16213e;
 }
 
-.button.primary {
-    background-color: var(--primary-color);
-    color: white;
+.panel-sub {
+    font-weight: 400;
+    color: #555;
 }
 
-.button.primary:hover {
-    background-color: #2980b9;
+canvas {
+    flex: 1;
+    display: block;
+    min-height: 0;
 }
 
-.button.secondary {
-    background-color: #ecf0f1;
-    color: var(--secondary-color);
+/* ── Status Bar ───────────────────────────────────────────────────────────── */
+.status {
+    text-align: center;
+    padding: 0.3rem;
+    font-size: 0.8rem;
+    color: #8892b0;
+    background: #16213e;
+    border-top: 1px solid #1a1a3e;
 }
 
-.button.secondary:hover {
-    background-color: #dfe6e9;
-} 
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+    .controls {
+        gap: 0.5rem;
+        padding: 0.4rem 0.5rem;
+    }
+
+    .control-buttons {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .btn {
+        flex: 1;
+    }
+
+    .panels {
+        flex-direction: column;
+    }
+}

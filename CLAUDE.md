@@ -4,23 +4,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Browser-based double pendulum physics simulator using **PyScript** (Python running in the browser via Pyodide/WebAssembly). No build step, no server, no package manager — just open `index.html` in a browser.
+Browser-based double pendulum chaos demo — two pendulums side-by-side with slightly different initial conditions, demonstrating sensitivity to initial conditions. Pure HTML/JS/Canvas, no external dependencies. Just open `index.html` in a browser.
 
 ## Running
 
-Open `index.html` directly in a browser. No server or install required. PyScript and NumPy are loaded from CDN at runtime.
+Open `index.html` directly in a browser. No server, build step, or install required.
 
 ## Architecture
 
-- **`index.html`** — Entry point. Loads PyScript (2023.03.1), configures it to fetch `double_pendulum.py` and `app.py`, and defines the UI (controls + HTML5 canvas). Uses `<py-config>` for PyScript setup and `<py-script src="app.py">` to run the app.
-- **`double_pendulum.py`** — Pure physics engine. `DoublePendulum` class implements equations of motion with RK4 numerical integration. Maintains state (angles, angular velocities, positions) and tip trail history. No browser/DOM dependencies.
-- **`app.py`** — Browser glue layer. Uses `js` and `pyodide.ffi` to bridge Python↔JavaScript. Handles canvas drawing, animation loop (`requestAnimationFrame`), UI event binding, and simulation lifecycle (init/play/pause/restart). All DOM interaction lives here.
-- **`style.css`** — Styles with an `.embedded` layout mode (compact controls, no padding) designed for iframe embedding.
+- **`index.html`** — Single-file app. Contains all HTML, the `DoublePendulum` JS class (RK4 physics engine ported from the original Python), canvas rendering, animation loop, and UI event handling. Two canvases side-by-side.
+- **`style.css`** — Dark theme layout with controls bar, two-panel canvas area, and status bar. Responsive (stacks vertically on mobile).
+- **`double_pendulum.py`** — Original Python physics engine (kept as reference, not loaded at runtime).
+- **`app.py`** — Former PyScript glue layer (kept as reference, not loaded at runtime).
 
 ## Key Technical Details
 
-- Physics runs in Python (via Pyodide), rendering uses HTML5 Canvas API called from Python through `js` module
-- Animation uses `requestAnimationFrame` with real-time delta calculation; physics steps are adjusted to match wall-clock time
-- Gravity is negative (`-9.8`) in the physics model; y-axis is inverted (positive = up) in `DoublePendulum`
-- Trail history defaults to 1000 points; "Full History" mode sets it to 1M points (effectively unlimited)
-- `test.html`, `simple-test.html`, `minimal-test.html` are debug/test pages, not production files
+- Physics: RK4 integration, fixed dt=0.01s, accumulator pattern syncs physics to wall-clock time
+- Two `DoublePendulum` instances: A uses (θ₁, θ₂), B uses (θ₁ + ε, θ₂) where ε defaults to 0.001°
+- Gravity is positive (9.8) in the JS version; y-axis points down (sin for x, cos for y)
+- Canvas uses DPR-aware sizing via `ResizeObserver`
+- Pendulum A: blue/red bobs, orange trail. Pendulum B: green/purple bobs, cyan trail
+- Trail history capped at 2000 points
